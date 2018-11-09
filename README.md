@@ -5,7 +5,7 @@
 #### Успешный ответ
 - Code: `200 OK`
 #### Ответ с ошибками
-- Code: `400 BAD REQUEST { "field": ["error message"] }`
+- Code: `400 BAD REQUEST { "field": ["error message"], ... }`
 ## Авторизация пользователя
 **URL:** `POST /api/users/login`
 #### Данные запроса
@@ -14,7 +14,7 @@
 - Code: `200 OK { token, userid }`
 #### Ответ с ошибками
 - Code: `403 FORBIDDEN`
-- Code: `400 BAD REQUEST { "field": ["error message"] }`
+- Code: `400 BAD REQUEST { "field": ["error message"], ... }`
 ## Выход пользователя
 **URL:** `POST /api/users/logout`
 #### Данные запроса
@@ -56,7 +56,7 @@
 #### Успешный ответ
 - Code: `200 OK`
 #### Ответ с ошибками
-- Code: `400 BAD REQUEST { "field": ["error message"] }`
+- Code: `400 BAD REQUEST { "field": ["error message"], ... }`
 - Code: `403 FORBIDDEN`
 ## Обновление сообщения
 **URL:** `PUT /api/message/{id}`
@@ -66,7 +66,7 @@
 #### Успешный ответ
 - Code: `200 OK`
 #### Ответ с ошибками
-- Code: `400 BAD REQUEST { "field": ["error message"] }`
+- Code: `400 BAD REQUEST { "field": ["error message"], ... }`
 - Code: `403 FORBIDDEN`
 - Code: `404 NOT FOUND`
 ## Удаление сообщения

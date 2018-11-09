@@ -142,7 +142,7 @@ namespace ChatApp.Controllers
         private User GetUserByToken()
         {
             StringValues token = String.Empty;
-            var result = Request.Headers.TryGetValue("Authorization", out token);
+            Request.Headers.TryGetValue("Authorization", out token);
             var t = _context.Tokens.Include(e => e.User).FirstOrDefault(e => e.Val == token);
             return t != null ? t.User : null;
         }

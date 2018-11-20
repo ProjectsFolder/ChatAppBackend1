@@ -36,7 +36,7 @@
 #### Данные запроса
 - `Headers { "Authorization": "token" }`
 #### Успешный ответ
-- Code: `200 OK [ { id, text, userid, username }, ... ]`
+- Code: `200 OK [ { id, text, userid, username, timecreated }, ... ]`
 #### Ответ с ошибками
 - Code: `403 FORBIDDEN`
 ## Получение одного сообщения
@@ -44,7 +44,7 @@
 #### Данные запроса
 - `Headers { "Authorization": "token" }`
 #### Успешный ответ
-- Code: `200 OK { id, text, userid, username }`
+- Code: `200 OK { id, text, userid, username, timecreated }`
 #### Ответ с ошибками
 - Code: `403 FORBIDDEN`
 - Code: `404 NOT FOUND`

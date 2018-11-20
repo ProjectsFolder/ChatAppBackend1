@@ -35,7 +35,8 @@ namespace ChatApp.Controllers
                         id = message.Id,
                         text = message.Text,
                         userid = message.UserId,
-                        username = message.User.Login
+                        username = message.User.Login,
+                        timecreated = message.Timecreated
                     }
                 );
             }
@@ -59,7 +60,8 @@ namespace ChatApp.Controllers
                     id = message.Id,
                     text = message.Text,
                     userid = message.UserId,
-                    username = message.User.Login
+                    username = message.User.Login,
+                    timecreated = message.Timecreated
                 }
             );
         }
@@ -77,7 +79,8 @@ namespace ChatApp.Controllers
             var message = new Message()
             {
                 UserId = user.Id,
-                Text = text
+                Text = text,
+                Timecreated = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds
             };
 
             if (!TryValidateModel(message))

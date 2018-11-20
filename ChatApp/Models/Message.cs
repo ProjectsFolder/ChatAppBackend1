@@ -15,6 +15,10 @@ namespace ChatApp.Models
         [Column("text")]
         public string Text { get; set; }
 
+        [Required]
+        [Column("timecreated")]
+        public int Timecreated { get; set; }
+
         [Column("userid")]
         public int UserId { get; set; }
 

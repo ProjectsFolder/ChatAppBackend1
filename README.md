@@ -49,7 +49,7 @@
 #### Ответ с ошибками
 - Code: `403 FORBIDDEN`
 ## Изменение изображения пользователя
-**URL:** `PUT /api/users/image/{id}`
+**URL:** `PUT /api/users/image`
 #### Данные запроса
 - `Headers { "Authorization": "token" }`
 - `FormData { image|file:5mb }`

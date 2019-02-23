@@ -80,7 +80,7 @@ namespace ChatApp.Controllers
             {
                 UserId = user.Id,
                 Text = text,
-                Timecreated = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds
+                Timecreated = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds
             };
 
             if (!TryValidateModel(message))
@@ -144,10 +144,10 @@ namespace ChatApp.Controllers
 
         private User GetUserByToken()
         {
-            StringValues token = String.Empty;
+            StringValues token = string.Empty;
             Request.Headers.TryGetValue("Authorization", out token);
             var t = _context.Tokens.Include(e => e.User).FirstOrDefault(e => e.Val == token);
-            return t != null ? t.User : null;
+            return t?.User;
         }
 
         private bool CheckUserPermissions(Message message)

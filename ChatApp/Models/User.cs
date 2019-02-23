@@ -21,6 +21,9 @@ namespace ChatApp.Models
         [Column("password")]
         public string Password { get; set; }
 
+        [Column("image")]
+        public byte[] Image { get; set; }
+
         public List<Message> Messages { get; set; }
 
         public List<Token> Tokens { get; set; }

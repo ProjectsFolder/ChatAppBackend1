@@ -1,9 +1,11 @@
 ﻿using ChatApp.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -27,7 +29,7 @@ namespace ChatApp.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromForm] User user)
+        public async Task<IActionResult> Register([FromForm] User user, IFormFile image)
         {
             if (!ModelState.IsValid)
             {
@@ -38,6 +40,8 @@ namespace ChatApp.Controllers
             {
                 return BadRequest(new { User = new[] { $"The user with login '{user.Login}' already exists" } });
             }
+
+            await SaveImage(user, image);
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -64,25 +68,32 @@ namespace ChatApp.Controllers
                 {
                     Val = guid.ToString(),
                     UserId = u.Id,
-                    Timecreated = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds
+                    Timecreated = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds
                 };
 
                 _context.Tokens.Add(token);
                 await _context.SaveChangesAsync();
 
-                return Ok(new{ token = guid, userid = u.Id });
+                return Ok(new { token = guid, userid = u.Id, username = u.Login });
             }
 
             return StatusCode(403);
+        }
+
+        [HttpGet("authorized")]
+        [Authorize(Policy = "UserAuthorize")]
+        public IActionResult Authorized()
+        {
+            return Ok();
         }
 
         [HttpPost("logout")]
         [Authorize(Policy = "UserAuthorize")]
         public async Task<IActionResult> Logout()
         {
-            StringValues token = String.Empty;
+            StringValues token = string.Empty;
             var result = Request.Headers.TryGetValue("Authorization", out token);
-            
+
             if (result)
             {
                 var t = await _context.Tokens.FirstOrDefaultAsync(e => e.Val == token);
@@ -101,7 +112,7 @@ namespace ChatApp.Controllers
         [Authorize(Policy = "UserAuthorize")]
         public async Task<IActionResult> LogoutAll()
         {
-            StringValues strtoken = String.Empty;
+            StringValues strtoken = string.Empty;
             var result = Request.Headers.TryGetValue("Authorization", out strtoken);
 
             if (result)
@@ -122,6 +133,45 @@ namespace ChatApp.Controllers
             return BadRequest();
         }
 
+        [HttpGet("image/{id}")]
+        [Authorize(Policy = "UserAuthorize")]
+        public async Task<IActionResult> GetImage([FromRoute] int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null || user.Image == null)
+            {
+                return NoContent();
+            }
+
+            return File(user.Image, "image/jpeg");
+        }
+
+        [HttpPut("image")]
+        [Authorize(Policy = "UserAuthorize")]
+        public async Task<IActionResult> PutImage(IFormFile image)
+        {
+            var user = GetUserByToken();
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (!await SaveImage(user, image))
+            {
+                user.Image = null;
+            }
+
+            if (!TryValidateModel(user))
+            {
+                return BadRequest(ModelState);
+            }
+
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
         private bool UsernameExists(string login)
         {
             return _context.Users.Any(e => e.Login == login);
@@ -137,6 +187,35 @@ namespace ChatApp.Controllers
                 token = _context.Tokens.FirstOrDefault(e => e.Val == guid.ToString());
             } while (token != null);
             return guid;
+        }
+
+        private User GetUserByToken()
+        {
+            StringValues token = string.Empty;
+            Request.Headers.TryGetValue("Authorization", out token);
+            var t = _context.Tokens.Include(e => e.User).FirstOrDefault(e => e.Val == token);
+            return t?.User;
+        }
+
+        private async Task<bool> SaveImage(User user, IFormFile file)
+        {
+            if (file != null && IsImageFile(file) && file.Length <= 5242880)
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    user.Image = memoryStream.ToArray();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool IsImageFile(IFormFile file)
+        {
+            var cntType = file.ContentType;
+            var cmpType = StringComparison.OrdinalIgnoreCase;
+            return string.Equals(cntType, "image/jpeg", cmpType);
         }
     }
 }

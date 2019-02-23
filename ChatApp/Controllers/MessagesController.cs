@@ -1,8 +1,8 @@
 ﻿using ChatApp.Models;
+using ChatApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,10 +15,12 @@ namespace ChatApp.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly ChatDbContext _context;
+        private readonly IUtils _utils;
 
-        public MessagesController(ChatDbContext context)
+        public MessagesController(ChatDbContext context, IUtils utils)
         {
             _context = context;
+            _utils = utils;
         }
 
         [HttpGet]
@@ -70,7 +72,7 @@ namespace ChatApp.Controllers
         [Authorize(Policy = "UserAuthorize")]
         public async Task<IActionResult> PostMessage([FromForm] string text)
         {
-            var user = GetUserByToken();
+            var user = _utils.GetUserByToken();
             if (user == null)
             {
                 return StatusCode(403);
@@ -142,17 +144,9 @@ namespace ChatApp.Controllers
             return Ok(message);
         }
 
-        private User GetUserByToken()
-        {
-            StringValues token = string.Empty;
-            Request.Headers.TryGetValue("Authorization", out token);
-            var t = _context.Tokens.Include(e => e.User).FirstOrDefault(e => e.Val == token);
-            return t?.User;
-        }
-
         private bool CheckUserPermissions(Message message)
         {
-            var user = GetUserByToken();
+            var user = _utils.GetUserByToken();
             return user != null && user.Id == message.UserId;
         }
     }

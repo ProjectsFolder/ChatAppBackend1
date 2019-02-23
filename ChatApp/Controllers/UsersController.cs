@@ -1,4 +1,5 @@
 ﻿using ChatApp.Models;
+using ChatApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +17,12 @@ namespace ChatApp.Controllers
     public class UsersController : ControllerBase
     {
         private readonly ChatDbContext _context;
+        private readonly IUtils _utils;
 
-        public UsersController(ChatDbContext context)
+        public UsersController(ChatDbContext context, IUtils utils)
         {
             _context = context;
+            _utils = utils;
         }
 
         [HttpGet]
@@ -41,7 +44,7 @@ namespace ChatApp.Controllers
                 return BadRequest(new { User = new[] { $"The user with login '{user.Login}' already exists" } });
             }
 
-            await SaveImage(user, image);
+            await SaveImageForUser(user, image);
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -62,7 +65,7 @@ namespace ChatApp.Controllers
 
             if (u != null)
             {
-                var guid = GetGuid();
+                var guid = _utils.GetGiudByUser();
 
                 var token = new Token()
                 {
@@ -150,13 +153,13 @@ namespace ChatApp.Controllers
         [Authorize(Policy = "UserAuthorize")]
         public async Task<IActionResult> PutImage(IFormFile image)
         {
-            var user = GetUserByToken();
+            var user = _utils.GetUserByToken();
             if (user == null)
             {
                 return NotFound();
             }
 
-            if (!await SaveImage(user, image))
+            if (!await SaveImageForUser(user, image))
             {
                 user.Image = null;
             }
@@ -177,27 +180,7 @@ namespace ChatApp.Controllers
             return _context.Users.Any(e => e.Login == login);
         }
 
-        private Guid GetGuid()
-        {
-            Guid guid;
-            Token token = null;
-            do
-            {
-                guid = Guid.NewGuid();
-                token = _context.Tokens.FirstOrDefault(e => e.Val == guid.ToString());
-            } while (token != null);
-            return guid;
-        }
-
-        private User GetUserByToken()
-        {
-            StringValues token = string.Empty;
-            Request.Headers.TryGetValue("Authorization", out token);
-            var t = _context.Tokens.Include(e => e.User).FirstOrDefault(e => e.Val == token);
-            return t?.User;
-        }
-
-        private async Task<bool> SaveImage(User user, IFormFile file)
+        public async Task<bool> SaveImageForUser(User user, IFormFile file)
         {
             if (file != null && IsImageFile(file) && file.Length <= 5242880)
             {

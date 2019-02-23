@@ -1,5 +1,6 @@
 ﻿using ChatApp.Models;
 using ChatApp.Policies;
+using ChatApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -35,6 +36,8 @@ namespace ChatApp
             });
 
             services.AddScoped<IAuthorizationHandler, UserAuthorizedHandler>();
+
+            services.AddScoped<IUtils, Utils>();
 
             services.AddCors();
 

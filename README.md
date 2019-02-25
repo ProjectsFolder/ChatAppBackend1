@@ -63,6 +63,7 @@
 **URL:** `GET /api/messages`
 #### Данные запроса
 - `Headers { "Authorization": "token" }`
+- `Query { ?limit }`
 #### Успешный ответ
 - Code: `200 OK [ { id, text, userid, username, timecreated }, ... ]`
 #### Ответ с ошибками

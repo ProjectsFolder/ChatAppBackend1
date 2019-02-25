@@ -25,9 +25,18 @@ namespace ChatApp.Controllers
 
         [HttpGet]
         [Authorize(Policy = "UserAuthorize")]
-        public JsonResult GetMessages()
+        public JsonResult GetMessages([FromQuery(Name = "limit")] int? limit = null)
         {
-            var messages = _context.Messages.Include(m => m.User);
+            var messages = _context.Messages
+                .Include(m => m.User)
+                .AsQueryable();
+            if (limit.HasValue)
+            {
+                messages = messages
+                    .OrderByDescending(m => m.Timecreated)
+                    .Take(limit.Value)
+                    .OrderBy(m => m.Timecreated);
+            }
             var result = new List<object>();
             foreach (var message in messages)
             {
